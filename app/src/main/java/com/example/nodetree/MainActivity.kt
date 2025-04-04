@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +62,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TreeScreen(viewModel: TreeViewModel = viewModel()) {
     val state by viewModel.treeState.collectAsState()
-
+    val currentChildren by remember(state.currentNode) {
+        derivedStateOf { state.currentNode.children }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -88,10 +91,10 @@ fun TreeScreen(viewModel: TreeViewModel = viewModel()) {
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            items(state.currentNode.children.size) { index ->
+            items(currentChildren.size) { index ->
                 NodeItem(
-                    node = state.currentNode.children[index],
-                    onNodeClick = { navigateTo(viewModel, it) },
+                    node = currentChildren[index],
+                    onNodeClick = { viewModel.navigateTo(it) },
                     onNodeRemove = { viewModel.removeNode(it) }
                 )
             }

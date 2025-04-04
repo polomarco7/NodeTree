@@ -63,17 +63,49 @@ class TreeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeNode(node: TreeNode) {
-        _treeState.update { state ->
-            node.parent?.removeChild(node)
+        _treeState.update { currentState ->
+            // Create a deep copy of the current node to ensure state change detection
+            val updatedCurrentNode = currentState.currentNode.deepCopy()
+
+            // Find and remove the node in the copied structure
+            updatedCurrentNode.findNode(node.id)?.let { nodeToRemove ->
+                nodeToRemove.parent?.removeChild(nodeToRemove)
+            }
+
+            // Save changes
             saveTree()
-            if (node == state.currentNode) {
-                state.copy(currentNode = node.parent ?: state.currentNode.findRoot())
+
+            // Return updated state
+            if (node.id == currentState.currentNode.id) {
+                // If we deleted the current node, navigate to parent
+                currentState.copy(
+                    currentNode = updatedCurrentNode.parent ?: updatedCurrentNode.findRoot(),
+                    rootNode = updatedCurrentNode.findRoot()
+                )
             } else {
-                state.copy()
+                currentState.copy(
+                    currentNode = updatedCurrentNode,
+                    rootNode = updatedCurrentNode.findRoot()
+                )
             }
         }
     }
 
+    fun TreeNode.deepCopy(): TreeNode {
+        val copy = TreeNode(this.id, this.name)
+        copy.children = this.children.map { it.deepCopy() }.toMutableList()
+        copy.children.forEach { it.parent = copy }
+        return copy
+    }
+
+    fun TreeNode.findNode(id: String): TreeNode? {
+        if (this.id == id) return this
+        for (child in children) {
+            val found = child.findNode(id)
+            if (found != null) return found
+        }
+        return null
+    }
     fun navigateUp() {
         _treeState.update { state ->
             state.currentNode.parent?.let { parent ->
