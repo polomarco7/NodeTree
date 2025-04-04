@@ -27,12 +27,23 @@ class TreeViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadTree() {
         viewModelScope.launch {
             val treeJson = sharedPreferences.getString("tree", null)
-            val root = if (treeJson == null) {
-                TreeNode(TreeNode.generateNodeId("Root"), "Root")
+            if (treeJson == null) {
+                TreeNode(TreeNode.generateNodeId("Root"), "Root").also {
+                    _treeState.value = TreeState(currentNode = it, rootNode = it)
+                }
             } else {
-                Gson().fromJson(treeJson, TreeNode::class.java)
+                Gson().fromJson(treeJson, TreeNode::class.java).apply {
+                    rebuildParentReferences()
+                    _treeState.value = TreeState(currentNode = this, rootNode = this)
+                }
             }
-            _treeState.update { it.copy(currentNode = root) }
+        }
+    }
+
+    private fun TreeNode.rebuildParentReferences() {
+        children.forEach { child ->
+            child.parent = this
+            child.rebuildParentReferences()
         }
     }
 
@@ -64,20 +75,15 @@ class TreeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removeNode(node: TreeNode) {
         _treeState.update { currentState ->
-            // Create a deep copy of the current node to ensure state change detection
             val updatedCurrentNode = currentState.currentNode.deepCopy()
 
-            // Find and remove the node in the copied structure
             updatedCurrentNode.findNode(node.id)?.let { nodeToRemove ->
                 nodeToRemove.parent?.removeChild(nodeToRemove)
             }
 
-            // Save changes
             saveTree()
 
-            // Return updated state
             if (node.id == currentState.currentNode.id) {
-                // If we deleted the current node, navigate to parent
                 currentState.copy(
                     currentNode = updatedCurrentNode.parent ?: updatedCurrentNode.findRoot(),
                     rootNode = updatedCurrentNode.findRoot()
@@ -107,16 +113,17 @@ class TreeViewModel(application: Application) : AndroidViewModel(application) {
         return null
     }
     fun navigateUp() {
-        _treeState.update { state ->
-            state.currentNode.parent?.let { parent ->
-                state.copy(currentNode = parent)
-            } ?: state
+        _treeState.update { currentState ->
+            currentState.currentNode.parent?.let { parent ->
+                currentState.copy(currentNode = parent)
+            } ?: currentState // Stay at root if no parent exists
         }
     }
 
     fun navigateTo(node: TreeNode) {
-        _treeState.update { state ->
-            state.copy(currentNode = node)
+        _treeState.update { currentState ->
+            val foundNode = currentState.rootNode?.findNode(node.id) ?: node
+            currentState.copy(currentNode = foundNode)
         }
     }
 

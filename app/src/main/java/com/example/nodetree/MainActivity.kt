@@ -65,14 +65,17 @@ fun TreeScreen(viewModel: TreeViewModel = viewModel()) {
     val currentChildren by remember(state.currentNode) {
         derivedStateOf { state.currentNode.children }
     }
+    val canNavigateUp = remember(state.currentNode) {
+        state.currentNode.parent != null
+    }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(state.currentNode.name) },
                 navigationIcon = {
-                    if (state.currentNode.parent != null) {
-                        IconButton(onClick = { navigateUp(viewModel) }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    if (canNavigateUp) {
+                        IconButton(onClick = { viewModel.navigateUp() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     }
                 }

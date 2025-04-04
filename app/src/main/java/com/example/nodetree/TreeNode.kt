@@ -36,6 +36,15 @@ data class TreeNode(
     }
 }
 
+fun TreeNode.findNode(id: String): TreeNode? {
+    if (this.id == id) return this
+    for (child in children) {
+        val found = child.findNode(id)
+        if (found != null) return found
+    }
+    return null
+}
+
 fun ByteArray.toHexString(): String {
     return joinToString("") { "%02x".format(it) }
 }
