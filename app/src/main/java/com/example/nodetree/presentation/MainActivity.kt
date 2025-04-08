@@ -192,14 +192,6 @@ fun AddNodeDialog(
     )
 }
 
-private fun navigateUp(viewModel: TreeViewModel) {
-    viewModel.navigateUp()
-}
-
-private fun navigateTo(viewModel: TreeViewModel, node: TreeNode) {
-    viewModel.navigateTo(node)
-}
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewTreeScreen() {
