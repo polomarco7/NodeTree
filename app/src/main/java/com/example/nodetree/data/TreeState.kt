@@ -1,4 +1,4 @@
-package com.example.nodetree
+package com.example.nodetree.data
 
 data class TreeState(
     val rootNode: TreeNode? = null,

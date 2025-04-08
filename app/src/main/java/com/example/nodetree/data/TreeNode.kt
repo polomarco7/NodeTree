@@ -1,4 +1,4 @@
-package com.example.nodetree
+package com.example.nodetree.data
 
 import java.security.MessageDigest
 

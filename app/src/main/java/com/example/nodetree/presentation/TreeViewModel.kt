@@ -1,9 +1,6 @@
-package com.example.nodetree
+package com.example.nodetree.presentation
 
-import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,14 +8,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import androidx.lifecycle.ViewModel
+import com.example.nodetree.data.TreeNode
+import com.example.nodetree.data.TreeState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class TreeViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class TreeViewModel @Inject constructor(
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
+
     private val _treeState = MutableStateFlow(TreeState())
     val treeState: StateFlow<TreeState> = _treeState
-
-    private val sharedPreferences: SharedPreferences by lazy {
-        application.getSharedPreferences("node_tree_prefs", Context.MODE_PRIVATE)
-    }
 
     init {
         loadTree()
@@ -116,7 +118,7 @@ class TreeViewModel(application: Application) : AndroidViewModel(application) {
         _treeState.update { currentState ->
             currentState.currentNode.parent?.let { parent ->
                 currentState.copy(currentNode = parent)
-            } ?: currentState // Stay at root if no parent exists
+            } ?: currentState
         }
     }
 

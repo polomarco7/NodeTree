@@ -1,4 +1,4 @@
-package com.example.nodetree
+package com.example.nodetree.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -39,9 +39,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.nodetree.data.TreeNode
 import com.example.nodetree.ui.theme.NodeTreeTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +63,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TreeScreen(viewModel: TreeViewModel = viewModel()) {
+fun TreeScreen(
+    viewModel: TreeViewModel = hiltViewModel()
+) {
     val state by viewModel.treeState.collectAsState()
     val currentChildren by remember(state.currentNode) {
         derivedStateOf { state.currentNode.children }
